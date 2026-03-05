@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import creatureTypesDe from '../data/creatureTypes_de';
 import keywordsDe from '../data/keywords_de';
 import ManaCost from './ManaCost';
+import { getCardImage, getManaCost } from '../utils/cardHelpers';
 
 const colorOptions = [
   { value: 'w', label: 'Weiß', symbol: 'W' },
@@ -203,21 +204,19 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
       <div className="card-grid">
         {results.map(card => (
           <div key={card.id} className="card-item">
-            {/* Klick auf die Karte = ins Hauptdeck */}
             <div
               className="card-main"
               onClick={() => onAddToDeck(card)}
               style={{ cursor: 'pointer' }}
             >
-              {card.image_uris?.small ? (
-                <img src={card.image_uris.small} alt={card.name} />
+              {getCardImage(card) ? (
+                <img src={getCardImage(card)} alt={card.name} />
               ) : (
                 <div style={{ height: '100px', background: '#3498db', borderRadius: '8px' }} />
               )}
               <div className="card-name">{card.name}</div>
-              <ManaCost manaCost={card.mana_cost} />
+              <ManaCost manaCost={getManaCost(card)} />
             </div>
-            {/* Info-Button für Modal */}
             <button
               className="card-info-btn"
               onClick={(e) => { e.stopPropagation(); onOpenModal(card); }}

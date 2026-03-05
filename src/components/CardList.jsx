@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { getCardImage } from '../utils/cardHelpers';
 
 const CardList = ({
   items,
@@ -8,7 +9,7 @@ const CardList = ({
   onMoveToSideboard,
   onMoveToDeck,
   showMoveButton = false,
-  moveDirection = 'toSideboard' // 'toSideboard' oder 'toDeck'
+  moveDirection = 'toSideboard'
 }) => {
   // Nach Manakosten sortieren
   const sortedItems = useMemo(() => {
@@ -24,8 +25,8 @@ const CardList = ({
             style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1, cursor: 'pointer' }}
             onClick={() => onOpenModal(card)}
           >
-            {card.image_uris?.small ? (
-              <img src={card.image_uris.small} alt={card.name} />
+            {getCardImage(card) ? (
+              <img src={getCardImage(card)} alt={card.name} />
             ) : (
               <div style={{ width: '40px', height: '40px', background: '#3498db', borderRadius: '6px' }} />
             )}
