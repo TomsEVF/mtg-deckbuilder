@@ -526,3 +526,34 @@ button.danger:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: #3498db;
 }
+.rarity-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.rarity-btn {
+  background: rgba(255, 255, 255, 0.5);
+  color: #2c3e50;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 30px;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  backdrop-filter: blur(5px);
+}
+
+.rarity-btn:hover {
+  border-color: #3498db;
+  background: rgba(52, 152, 219, 0.2);
+}
+
+.rarity-btn.active {
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+}

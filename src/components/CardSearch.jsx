@@ -31,6 +31,13 @@ const operatorOptions = [
   { value: '>=', label: '>=' },
 ];
 
+const rarityOptions = [
+  { value: 'common', label: 'Common' },
+  { value: 'uncommon', label: 'Uncommon' },
+  { value: 'rare', label: 'Rare' },
+  { value: 'mythic', label: 'Mythic' },
+];
+
 const CardSearch = ({ onAddCard, onOpenModal }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -41,6 +48,7 @@ const CardSearch = ({ onAddCard, onOpenModal }) => {
   const [cmcValue, setCmcValue] = useState('');
   const [creatureType, setCreatureType] = useState('');
   const [keyword, setKeyword] = useState('');
+  const [rarity, setRarity] = useState('');
 
   const toggleColor = (color) => {
     setSelectedColors(prev =>
@@ -65,6 +73,7 @@ const CardSearch = ({ onAddCard, onOpenModal }) => {
     if (cmcValue && !isNaN(cmcValue)) parts.push(`cmc${cmcOperator}${cmcValue}`);
     if (creatureType) parts.push(`t:${creatureType}`);
     if (keyword) parts.push(`keyword:${keyword}`);
+    if (rarity) parts.push(`r:${rarity}`);
     return parts.join(' ');
   };
 
@@ -82,15 +91,20 @@ const CardSearch = ({ onAddCard, onOpenModal }) => {
       })
         .then(res => res.json())
         .then(data => {
-          if (data.data) setResults(data.data);
-          else setResults([]);
+          if (data.data) {
+            // Sortierung nach Manakosten (CMC) aufsteigend
+            const sorted = [...data.data].sort((a, b) => (a.cmc || 0) - (b.cmc || 0));
+            setResults(sorted);
+          } else {
+            setResults([]);
+          }
         })
         .catch(err => console.error(err))
         .finally(() => setLoading(false));
     }, 500);
 
     return () => clearTimeout(delay);
-  }, [query, selectedColors, cardType, cmcOperator, cmcValue, creatureType, keyword]);
+  }, [query, selectedColors, cardType, cmcOperator, cmcValue, creatureType, keyword, rarity]);
 
   return (
     <div>
@@ -118,6 +132,25 @@ const CardSearch = ({ onAddCard, onOpenModal }) => {
               alt={opt.label}
               onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = opt.symbol; }}
             />
+          </button>
+        ))}
+      </div>
+
+      {/* Seltenheitsfilter */}
+      <div className="rarity-picker">
+        <button
+          className={`rarity-btn ${rarity === '' ? 'active' : ''}`}
+          onClick={() => setRarity('')}
+        >
+          Alle
+        </button>
+        {rarityOptions.map(opt => (
+          <button
+            key={opt.value}
+            className={`rarity-btn ${rarity === opt.value ? 'active' : ''}`}
+            onClick={() => setRarity(opt.value)}
+          >
+            {opt.label}
           </button>
         ))}
       </div>
