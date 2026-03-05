@@ -50,6 +50,7 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
   const [creatureType, setCreatureType] = useState('');
   const [keyword, setKeyword] = useState('');
   const [rarity, setRarity] = useState('');
+  const [hasLoadedInitial, setHasLoadedInitial] = useState(false);
 
   const toggleColor = (color) => {
     setSelectedColors(prev =>
@@ -80,6 +81,28 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
 
   useEffect(() => {
     const searchQuery = buildQuery();
+
+    // Initial: Wenn keine Suche aktiv, zeige Basis-Länder (nur einmal)
+    if (!searchQuery && !hasLoadedInitial) {
+      setLoading(true);
+      fetch('https://api.scryfall.com/cards/search?q=t:basic', {
+        headers: { 'User-Agent': 'MTGDeckBuilder/1.0' }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.data) {
+            // Nach Namen sortieren, damit gleiche Länder zusammenstehen
+            const sorted = [...data.data].sort((a, b) => a.name.localeCompare(b.name));
+            setResults(sorted);
+          }
+        })
+        .catch(err => console.error(err))
+        .finally(() => setLoading(false));
+      setHasLoadedInitial(true);
+      return;
+    }
+
+    // Normale Suche
     if (!searchQuery) {
       setResults([]);
       return;
@@ -93,8 +116,13 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
         .then(res => res.json())
         .then(data => {
           if (data.data) {
-            // Sortierung nach Manakosten (CMC) aufsteigend
-            const sorted = [...data.data].sort((a, b) => (a.cmc || 0) - (b.cmc || 0));
+            // Sortierung: Bei Ländern nach Namen, sonst nach CMC
+            let sorted;
+            if (cardType === 'land') {
+              sorted = [...data.data].sort((a, b) => a.name.localeCompare(b.name));
+            } else {
+              sorted = [...data.data].sort((a, b) => (a.cmc || 0) - (b.cmc || 0));
+            }
             setResults(sorted);
           } else {
             setResults([]);
@@ -105,7 +133,7 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
     }, 500);
 
     return () => clearTimeout(delay);
-  }, [query, selectedColors, cardType, cmcOperator, cmcValue, creatureType, keyword, rarity]);
+  }, [query, selectedColors, cardType, cmcOperator, cmcValue, creatureType, keyword, rarity, hasLoadedInitial]);
 
   return (
     <div>
