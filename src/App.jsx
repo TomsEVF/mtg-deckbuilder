@@ -41,6 +41,11 @@ function App() {
     setSelectedCard(null);
   };
 
+  // Hilfsfunktion: Ist die Karte ein Land?
+  const isLand = (card) => {
+    return card.type_line && card.type_line.includes('Land');
+  };
+
   // Hilfsfunktion: Gesamtanzahl einer Karte (Deck + Sideboard)
   const getTotalQuantity = (cardId) => {
     const deckEntry = deck.find(c => c.card.id === cardId);
@@ -51,7 +56,8 @@ function App() {
   // Karte ins Hauptdeck hinzufügen (von Suche oder Modal)
   const addToDeck = (card) => {
     const total = getTotalQuantity(card.id);
-    if (total >= 4) return; // Maximal 4 insgesamt
+    // Nur für Nicht-Länder gilt die 4er-Grenze
+    if (!isLand(card) && total >= 4) return;
 
     setDeck(prev => {
       const existing = prev.find(c => c.card.id === card.id);
@@ -68,7 +74,7 @@ function App() {
   // Karte ins Sideboard hinzufügen
   const addToSideboard = (card) => {
     const total = getTotalQuantity(card.id);
-    if (total >= 4) return;
+    if (!isLand(card) && total >= 4) return;
 
     setSideboard(prev => {
       const existing = prev.find(c => c.card.id === card.id);
@@ -96,26 +102,37 @@ function App() {
   const updateDeckQuantity = (cardId, newQuantity) => {
     if (newQuantity <= 0) {
       removeFromDeck(cardId);
-    } else {
-      const totalOther = (sideboard.find(c => c.card.id === cardId)?.quantity || 0);
-      if (newQuantity + totalOther > 4) return; // Gesamtlimit 4 nicht überschreiten
-      setDeck(prev =>
-        prev.map(c => c.card.id === cardId ? { ...c, quantity: newQuantity } : c)
-      );
+      return;
     }
+
+    const card = deck.find(c => c.card.id === cardId)?.card;
+    if (!card) return;
+
+    const totalOther = (sideboard.find(c => c.card.id === cardId)?.quantity || 0);
+    // Nur für Nicht-Länder prüfen
+    if (!isLand(card) && newQuantity + totalOther > 4) return;
+
+    setDeck(prev =>
+      prev.map(c => c.card.id === cardId ? { ...c, quantity: newQuantity } : c)
+    );
   };
 
   // Menge im Sideboard ändern
   const updateSideboardQuantity = (cardId, newQuantity) => {
     if (newQuantity <= 0) {
       removeFromSideboard(cardId);
-    } else {
-      const totalOther = (deck.find(c => c.card.id === cardId)?.quantity || 0);
-      if (newQuantity + totalOther > 4) return;
-      setSideboard(prev =>
-        prev.map(c => c.card.id === cardId ? { ...c, quantity: newQuantity } : c)
-      );
+      return;
     }
+
+    const card = sideboard.find(c => c.card.id === cardId)?.card;
+    if (!card) return;
+
+    const totalOther = (deck.find(c => c.card.id === cardId)?.quantity || 0);
+    if (!isLand(card) && newQuantity + totalOther > 4) return;
+
+    setSideboard(prev =>
+      prev.map(c => c.card.id === cardId ? { ...c, quantity: newQuantity } : c)
+    );
   };
 
   // Karte vom Hauptdeck ins Sideboard verschieben
@@ -124,10 +141,14 @@ function App() {
     if (!deckEntry) return;
     if (deckEntry.quantity <= 0) return;
 
+    const card = deckEntry.card;
     const sbEntry = sideboard.find(c => c.card.id === cardId);
     const sbQuantity = sbEntry?.quantity || 0;
-    if (sbQuantity + deckEntry.quantity > 4) {
-      alert('Zu viele Exemplare insgesamt (maximal 4)');
+    const total = sbQuantity + deckEntry.quantity;
+
+    // Nur für Nicht-Länder prüfen
+    if (!isLand(card) && total > 4) {
+      alert('Zu viele Exemplare insgesamt (maximal 4 für Nicht-Länder)');
       return;
     }
 
@@ -140,7 +161,7 @@ function App() {
           c.card.id === cardId ? { ...c, quantity: c.quantity + deckEntry.quantity } : c
         );
       } else {
-        return [...prev, { card: deckEntry.card, quantity: deckEntry.quantity }];
+        return [...prev, { card, quantity: deckEntry.quantity }];
       }
     });
   };
@@ -151,10 +172,13 @@ function App() {
     if (!sbEntry) return;
     if (sbEntry.quantity <= 0) return;
 
+    const card = sbEntry.card;
     const deckEntry = deck.find(c => c.card.id === cardId);
     const deckQuantity = deckEntry?.quantity || 0;
-    if (deckQuantity + sbEntry.quantity > 4) {
-      alert('Zu viele Exemplare insgesamt (maximal 4)');
+    const total = deckQuantity + sbEntry.quantity;
+
+    if (!isLand(card) && total > 4) {
+      alert('Zu viele Exemplare insgesamt (maximal 4 für Nicht-Länder)');
       return;
     }
 
@@ -165,7 +189,7 @@ function App() {
           c.card.id === cardId ? { ...c, quantity: c.quantity + sbEntry.quantity } : c
         );
       } else {
-        return [...prev, { card: sbEntry.card, quantity: sbEntry.quantity }];
+        return [...prev, { card, quantity: sbEntry.quantity }];
       }
     });
   };
@@ -215,6 +239,7 @@ function App() {
               onUpdateQuantity={updateDeckQuantity}
               onOpenModal={openModal}
               onMoveToSideboard={moveToSideboard}
+              onMoveToDeck={moveToDeck}
               showMoveButton={true}
               moveDirection="toSideboard"
             />
@@ -230,6 +255,7 @@ function App() {
               onRemove={removeFromSideboard}
               onUpdateQuantity={updateSideboardQuantity}
               onOpenModal={openModal}
+              onMoveToSideboard={moveToSideboard}
               onMoveToDeck={moveToDeck}
               showMoveButton={true}
               moveDirection="toDeck"
