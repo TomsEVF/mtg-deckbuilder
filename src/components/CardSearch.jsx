@@ -38,7 +38,7 @@ const rarityOptions = [
   { value: 'mythic', label: 'Mythic' },
 ];
 
-const CardSearch = ({ onAddCard, onOpenModal }) => {
+const CardSearch = ({ onAddToDeck, onOpenModal }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -203,7 +203,12 @@ const CardSearch = ({ onAddCard, onOpenModal }) => {
       <div className="card-grid">
         {results.map(card => (
           <div key={card.id} className="card-item">
-            <div className="card-main" onClick={() => onOpenModal(card)}>
+            {/* Klick auf die Karte = ins Hauptdeck */}
+            <div
+              className="card-main"
+              onClick={() => onAddToDeck(card)}
+              style={{ cursor: 'pointer' }}
+            >
               {card.image_uris?.small ? (
                 <img src={card.image_uris.small} alt={card.name} />
               ) : (
@@ -212,11 +217,14 @@ const CardSearch = ({ onAddCard, onOpenModal }) => {
               <div className="card-name">{card.name}</div>
               <ManaCost manaCost={card.mana_cost} />
             </div>
+            {/* Info-Button für Modal */}
             <button
-              className="card-add-btn"
-              onClick={(e) => { e.stopPropagation(); onAddCard(card); }}
-              title="Zum Deck hinzufügen"
-            >+</button>
+              className="card-info-btn"
+              onClick={(e) => { e.stopPropagation(); onOpenModal(card); }}
+              title="Details anzeigen"
+            >
+              ℹ️
+            </button>
           </div>
         ))}
       </div>

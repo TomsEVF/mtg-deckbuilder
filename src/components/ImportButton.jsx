@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const ImportButton = ({ setDeck }) => {
+const ImportButton = ({ setDeck, setSideboard }) => {
   const [importing, setImporting] = useState(false);
 
   const parseLine = (line) => {
@@ -23,14 +23,20 @@ const ImportButton = ({ setDeck }) => {
     reader.onload = async (e) => {
       const lines = e.target.result.split('\n').filter(line => line.trim() !== '');
       setImporting(true);
+
       const newDeck = [];
+      const newSideboard = [];
+      let inSideboard = false;
 
       for (const line of lines) {
-        const parsed = parseLine(line);
-        if (!parsed) {
-          alert(`Zeile konnte nicht geparst werden: ${line}`);
+        // Sideboard-Marker erkennen
+        if (line.toLowerCase().includes('sideboard') || line.trim() === 'SB:') {
+          inSideboard = true;
           continue;
         }
+
+        const parsed = parseLine(line);
+        if (!parsed) continue;
 
         let query = `!"${parsed.name}"`;
         if (parsed.setCode) query += ` set:${parsed.setCode}`;
@@ -42,11 +48,12 @@ const ImportButton = ({ setDeck }) => {
           const data = await response.json();
           if (data.data && data.data.length > 0) {
             const card = data.data[0];
-            const existing = newDeck.find(c => c.card.id === card.id);
+            const targetArray = inSideboard ? newSideboard : newDeck;
+            const existing = targetArray.find(c => c.card.id === card.id);
             if (existing) {
               existing.quantity += parsed.quantity;
             } else {
-              newDeck.push({ card, quantity: parsed.quantity });
+              targetArray.push({ card, quantity: parsed.quantity });
             }
           } else {
             alert(`Karte nicht gefunden: ${parsed.name}`);
@@ -58,6 +65,7 @@ const ImportButton = ({ setDeck }) => {
       }
 
       setDeck(newDeck);
+      setSideboard(newSideboard);
       setImporting(false);
       alert('Import abgeschlossen!');
     };

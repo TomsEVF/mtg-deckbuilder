@@ -557,3 +557,129 @@ button.danger:hover {
   color: white;
   border-color: #3498db;
 }
+/* Sideboard-Bereich */
+.sideboard-section {
+  margin-top: 30px;
+  border-top: 2px solid rgba(52, 152, 219, 0.3);
+  padding-top: 20px;
+}
+
+/* Zwei Plus-Buttons in der Suche */
+.card-add-buttons {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.card-item:hover .card-add-buttons {
+  opacity: 1;
+}
+
+.card-add-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: transform 0.1s;
+}
+
+.card-add-btn:hover {
+  transform: scale(1.1);
+}
+
+.deck-btn {
+  background: #3498db;
+  color: white;
+}
+
+.deck-btn:hover {
+  background: #2980b9;
+}
+
+.sideboard-btn {
+  background: #9b59b6;
+  color: white;
+}
+
+.sideboard-btn:hover {
+  background: #8e44ad;
+}
+
+/* Move-Button in den Listen */
+.move-btn {
+  background: rgba(255, 255, 255, 0.8);
+  color: #2c3e50;
+  border: 1px solid rgba(255,255,255,0.5);
+  border-radius: 30px;
+  padding: 4px 8px;
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.move-btn:hover {
+  background: #3498db;
+  color: white;
+}
+
+/* Modal-Sektionen */
+.modal-section {
+  margin-top: 20px;
+  padding: 10px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 12px;
+}
+
+.modal-section h3 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 16px;
+}
+/* Info-Button für Karten-Details */
+.card-info-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #2c3e50;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.1s;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  backdrop-filter: blur(5px);
+}
+
+.card-item:hover .card-info-btn {
+  opacity: 1;
+}
+
+.card-info-btn:hover {
+  background: #3498db;
+  color: white;
+  transform: scale(1.1);
+}

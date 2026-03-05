@@ -1,7 +1,20 @@
 import React from 'react';
 import ManaCost from './ManaCost';
 
-const CardModal = ({ card, onClose, onAdd, onUpdateQuantity, onRemove, inDeck, quantity }) => {
+const CardModal = ({
+  card,
+  onClose,
+  onAddToDeck,
+  onAddToSideboard,
+  onUpdateDeckQuantity,
+  onUpdateSideboardQuantity,
+  onRemoveFromDeck,
+  onRemoveFromSideboard,
+  inDeck,
+  inSideboard,
+  deckQuantity,
+  sideboardQuantity
+}) => {
   if (!card) return null;
 
   const imageUrl = card.image_uris?.normal || card.image_uris?.large || card.image_uris?.small;
@@ -26,19 +39,41 @@ const CardModal = ({ card, onClose, onAdd, onUpdateQuantity, onRemove, inDeck, q
               </div>
             )}
             {card.power && card.toughness && <p className="modal-pt">{card.power}/{card.toughness}</p>}
+
             <div className="modal-actions">
-              {inDeck ? (
-                <div className="modal-deck-actions">
-                  <div className="quantity-controls">
-                    <button onClick={() => onUpdateQuantity(card.id, quantity - 1)}>-</button>
-                    <span>{quantity}</span>
-                    <button onClick={() => onUpdateQuantity(card.id, quantity + 1)}>+</button>
+              {/* Hauptdeck-Steuerung */}
+              <div className="modal-section">
+                <h3>Hauptdeck</h3>
+                {inDeck ? (
+                  <div className="modal-deck-actions">
+                    <div className="quantity-controls">
+                      <button onClick={() => onUpdateDeckQuantity(card.id, deckQuantity - 1)}>-</button>
+                      <span>{deckQuantity}</span>
+                      <button onClick={() => onUpdateDeckQuantity(card.id, deckQuantity + 1)}>+</button>
+                    </div>
+                    <button className="danger" onClick={() => { onRemoveFromDeck(card.id); onClose(); }}>Entfernen</button>
                   </div>
-                  <button className="danger" onClick={() => { onRemove(card.id); onClose(); }}>Entfernen</button>
-                </div>
-              ) : (
-                <button onClick={() => { onAdd(card); onClose(); }}>Zum Deck hinzufügen</button>
-              )}
+                ) : (
+                  <button onClick={() => { onAddToDeck(card); onClose(); }}>Ins Hauptdeck</button>
+                )}
+              </div>
+
+              {/* Sideboard-Steuerung */}
+              <div className="modal-section">
+                <h3>Sideboard</h3>
+                {inSideboard ? (
+                  <div className="modal-deck-actions">
+                    <div className="quantity-controls">
+                      <button onClick={() => onUpdateSideboardQuantity(card.id, sideboardQuantity - 1)}>-</button>
+                      <span>{sideboardQuantity}</span>
+                      <button onClick={() => onUpdateSideboardQuantity(card.id, sideboardQuantity + 1)}>+</button>
+                    </div>
+                    <button className="danger" onClick={() => { onRemoveFromSideboard(card.id); onClose(); }}>Entfernen</button>
+                  </div>
+                ) : (
+                  <button onClick={() => { onAddToSideboard(card); onClose(); }}>Ins Sideboard</button>
+                )}
+              </div>
             </div>
           </div>
         </div>
