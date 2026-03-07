@@ -7,9 +7,15 @@ import CardModal from './components/CardModal';
 import './index.css';
 
 function App() {
-  // Hauptdeck
-  const [deck, setDeck] = useState(() => {
-    const saved = localStorage.getItem('mtgDeck');
+  // Hauptdeck (nur Nicht-Länder)
+  const [mainDeck, setMainDeck] = useState(() => {
+    const saved = localStorage.getItem('mtgMainDeck');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Länder (separat)
+  const [lands, setLands] = useState(() => {
+    const saved = localStorage.getItem('mtgLands');
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -22,10 +28,14 @@ function App() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Beide States im localStorage speichern
+  // Alles im localStorage speichern
   useEffect(() => {
-    localStorage.setItem('mtgDeck', JSON.stringify(deck));
-  }, [deck]);
+    localStorage.setItem('mtgMainDeck', JSON.stringify(mainDeck));
+  }, [mainDeck]);
+
+  useEffect(() => {
+    localStorage.setItem('mtgLands', JSON.stringify(lands));
+  }, [lands]);
 
   useEffect(() => {
     localStorage.setItem('mtgSideboard', JSON.stringify(sideboard));
@@ -46,36 +56,45 @@ function App() {
     return card.type_line && card.type_line.includes('Land');
   };
 
-  // Hilfsfunktion: Gesamtanzahl einer Karte (Deck + Sideboard)
+  // Gesamtanzahl einer Karte über alle Bereiche
   const getTotalQuantity = (cardId) => {
-    const deckEntry = deck.find(c => c.card.id === cardId);
-    const sbEntry = sideboard.find(c => c.card.id === cardId);
-    return (deckEntry?.quantity || 0) + (sbEntry?.quantity || 0);
+    const main = mainDeck.find(c => c.card.id === cardId)?.quantity || 0;
+    const land = lands.find(c => c.card.id === cardId)?.quantity || 0;
+    const sb = sideboard.find(c => c.card.id === cardId)?.quantity || 0;
+    return main + land + sb;
   };
 
-  // Karte ins Hauptdeck hinzufügen (von Suche oder Modal)
-  const addToDeck = (card) => {
-    const total = getTotalQuantity(card.id);
-    // Nur für Nicht-Länder gilt die 4er-Grenze
-    if (!isLand(card) && total >= 4) return;
-
-    setDeck(prev => {
-      const existing = prev.find(c => c.card.id === card.id);
-      if (existing) {
-        return prev.map(c =>
-          c.card.id === card.id ? { ...c, quantity: c.quantity + 1 } : c
-        );
-      } else {
-        return [...prev, { card, quantity: 1 }];
-      }
-    });
+  // Karte hinzufügen (je nach Typ in mainDeck oder lands)
+  const addCard = (card) => {
+    if (isLand(card)) {
+      // Länder kommen in den lands-Bereich
+      setLands(prev => {
+        const existing = prev.find(c => c.card.id === card.id);
+        if (existing) {
+          return prev.map(c =>
+            c.card.id === card.id ? { ...c, quantity: c.quantity + 1 } : c
+          );
+        } else {
+          return [...prev, { card, quantity: 1 }];
+        }
+      });
+    } else {
+      // Nicht-Länder kommen ins Hauptdeck
+      setMainDeck(prev => {
+        const existing = prev.find(c => c.card.id === card.id);
+        if (existing) {
+          return prev.map(c =>
+            c.card.id === card.id ? { ...c, quantity: c.quantity + 1 } : c
+          );
+        } else {
+          return [...prev, { card, quantity: 1 }];
+        }
+      });
+    }
   };
 
-  // Karte ins Sideboard hinzufügen
+  // Für Sideboard (auch Länder können ins Sideboard)
   const addToSideboard = (card) => {
-    const total = getTotalQuantity(card.id);
-    if (!isLand(card) && total >= 4) return;
-
     setSideboard(prev => {
       const existing = prev.find(c => c.card.id === card.id);
       if (existing) {
@@ -88,128 +107,137 @@ function App() {
     });
   };
 
-  // Karte aus Hauptdeck entfernen
-  const removeFromDeck = (cardId) => {
-    setDeck(prev => prev.filter(c => c.card.id !== cardId));
+  // Entfernen aus mainDeck
+  const removeFromMain = (cardId) => {
+    setMainDeck(prev => prev.filter(c => c.card.id !== cardId));
   };
 
-  // Karte aus Sideboard entfernen
+  // Entfernen aus lands
+  const removeFromLands = (cardId) => {
+    setLands(prev => prev.filter(c => c.card.id !== cardId));
+  };
+
+  // Entfernen aus sideboard
   const removeFromSideboard = (cardId) => {
     setSideboard(prev => prev.filter(c => c.card.id !== cardId));
   };
 
-  // Menge im Hauptdeck ändern
-  const updateDeckQuantity = (cardId, newQuantity) => {
+  // Menge ändern in mainDeck
+  const updateMainQuantity = (cardId, newQuantity) => {
     if (newQuantity <= 0) {
-      removeFromDeck(cardId);
-      return;
+      removeFromMain(cardId);
+    } else {
+      setMainDeck(prev =>
+        prev.map(c => c.card.id === cardId ? { ...c, quantity: newQuantity } : c)
+      );
     }
-
-    const card = deck.find(c => c.card.id === cardId)?.card;
-    if (!card) return;
-
-    const totalOther = (sideboard.find(c => c.card.id === cardId)?.quantity || 0);
-    // Nur für Nicht-Länder prüfen
-    if (!isLand(card) && newQuantity + totalOther > 4) return;
-
-    setDeck(prev =>
-      prev.map(c => c.card.id === cardId ? { ...c, quantity: newQuantity } : c)
-    );
   };
 
-  // Menge im Sideboard ändern
+  // Menge ändern in lands
+  const updateLandsQuantity = (cardId, newQuantity) => {
+    if (newQuantity <= 0) {
+      removeFromLands(cardId);
+    } else {
+      setLands(prev =>
+        prev.map(c => c.card.id === cardId ? { ...c, quantity: newQuantity } : c)
+      );
+    }
+  };
+
+  // Menge ändern in sideboard
   const updateSideboardQuantity = (cardId, newQuantity) => {
     if (newQuantity <= 0) {
       removeFromSideboard(cardId);
-      return;
+    } else {
+      setSideboard(prev =>
+        prev.map(c => c.card.id === cardId ? { ...c, quantity: newQuantity } : c)
+      );
     }
-
-    const card = sideboard.find(c => c.card.id === cardId)?.card;
-    if (!card) return;
-
-    const totalOther = (deck.find(c => c.card.id === cardId)?.quantity || 0);
-    if (!isLand(card) && newQuantity + totalOther > 4) return;
-
-    setSideboard(prev =>
-      prev.map(c => c.card.id === cardId ? { ...c, quantity: newQuantity } : c)
-    );
   };
 
-  // Karte vom Hauptdeck ins Sideboard verschieben
-  const moveToSideboard = (cardId) => {
-    const deckEntry = deck.find(c => c.card.id === cardId);
-    if (!deckEntry) return;
-    if (deckEntry.quantity <= 0) return;
-
-    const card = deckEntry.card;
-    const sbEntry = sideboard.find(c => c.card.id === cardId);
-    const sbQuantity = sbEntry?.quantity || 0;
-    const total = sbQuantity + deckEntry.quantity;
-
-    // Nur für Nicht-Länder prüfen
-    if (!isLand(card) && total > 4) {
-      alert('Zu viele Exemplare insgesamt (maximal 4 für Nicht-Länder)');
-      return;
-    }
-
-    // Aus Deck entfernen
-    setDeck(prev => prev.filter(c => c.card.id !== cardId));
-    // Ins Sideboard einfügen (Menge addieren)
-    setSideboard(prev => {
-      if (sbEntry) {
-        return prev.map(c =>
-          c.card.id === cardId ? { ...c, quantity: c.quantity + deckEntry.quantity } : c
-        );
-      } else {
-        return [...prev, { card, quantity: deckEntry.quantity }];
-      }
-    });
-  };
-
-  // Karte vom Sideboard ins Hauptdeck verschieben
-  const moveToDeck = (cardId) => {
-    const sbEntry = sideboard.find(c => c.card.id === cardId);
-    if (!sbEntry) return;
-    if (sbEntry.quantity <= 0) return;
-
-    const card = sbEntry.card;
-    const deckEntry = deck.find(c => c.card.id === cardId);
-    const deckQuantity = deckEntry?.quantity || 0;
-    const total = deckQuantity + sbEntry.quantity;
-
-    if (!isLand(card) && total > 4) {
-      alert('Zu viele Exemplare insgesamt (maximal 4 für Nicht-Länder)');
-      return;
-    }
-
+  // Verschieben aus Sideboard ins Hauptdeck (Länder in lands, Nicht-Länder in main)
+  const moveToMain = (cardId) => {
+    const entry = sideboard.find(c => c.card.id === cardId);
+    if (!entry) return;
     setSideboard(prev => prev.filter(c => c.card.id !== cardId));
-    setDeck(prev => {
-      if (deckEntry) {
+
+    if (isLand(entry.card)) {
+      // Land in lands verschieben
+      setLands(prev => {
+        const existing = prev.find(c => c.card.id === cardId);
+        if (existing) {
+          return prev.map(c =>
+            c.card.id === cardId ? { ...c, quantity: c.quantity + entry.quantity } : c
+          );
+        } else {
+          return [...prev, { card: entry.card, quantity: entry.quantity }];
+        }
+      });
+    } else {
+      // Nicht-Land in mainDeck
+      setMainDeck(prev => {
+        const existing = prev.find(c => c.card.id === cardId);
+        if (existing) {
+          return prev.map(c =>
+            c.card.id === cardId ? { ...c, quantity: c.quantity + entry.quantity } : c
+          );
+        } else {
+          return [...prev, { card: entry.card, quantity: entry.quantity }];
+        }
+      });
+    }
+  };
+
+  // Verschieben aus Hauptdeck oder Länder ins Sideboard
+  const moveToSideboard = (cardId, from) => {
+    let entry;
+    if (from === 'main') {
+      entry = mainDeck.find(c => c.card.id === cardId);
+      if (!entry) return;
+      setMainDeck(prev => prev.filter(c => c.card.id !== cardId));
+    } else if (from === 'lands') {
+      entry = lands.find(c => c.card.id === cardId);
+      if (!entry) return;
+      setLands(prev => prev.filter(c => c.card.id !== cardId));
+    } else {
+      return;
+    }
+
+    setSideboard(prev => {
+      const existing = prev.find(c => c.card.id === cardId);
+      if (existing) {
         return prev.map(c =>
-          c.card.id === cardId ? { ...c, quantity: c.quantity + sbEntry.quantity } : c
+          c.card.id === cardId ? { ...c, quantity: c.quantity + entry.quantity } : c
         );
       } else {
-        return [...prev, { card, quantity: sbEntry.quantity }];
+        return [...prev, { card: entry.card, quantity: entry.quantity }];
       }
     });
   };
 
-  // Gesamtzahl Karten im Sideboard (für Limit)
-  const sideboardTotal = sideboard.reduce((sum, c) => sum + c.quantity, 0);
+  // Gesamtkartenzahl
+  const totalMain = mainDeck.reduce((sum, c) => sum + c.quantity, 0);
+  const totalLands = lands.reduce((sum, c) => sum + c.quantity, 0);
+  const totalDeck = totalMain + totalLands;
+  const totalSideboard = sideboard.reduce((sum, c) => sum + c.quantity, 0);
 
   // Leeren
-  const clearDeck = () => setDeck([]);
+  const clearMain = () => setMainDeck([]);
+  const clearLands = () => setLands([]);
   const clearSideboard = () => setSideboard([]);
 
   // Hilfsfunktion für Modal
-  const getCardInDeck = (cardId) => {
-    const deckEntry = deck.find(c => c.card.id === cardId);
-    const sbEntry = sideboard.find(c => c.card.id === cardId);
+  const getCardInDecks = (cardId) => {
+    const main = mainDeck.find(c => c.card.id === cardId);
+    const land = lands.find(c => c.card.id === cardId);
+    const sb = sideboard.find(c => c.card.id === cardId);
     return {
-      inDeck: !!deckEntry,
-      inSideboard: !!sbEntry,
-      deckQuantity: deckEntry?.quantity || 0,
-      sideboardQuantity: sbEntry?.quantity || 0
+      inMain: !!main,
+      inLands: !!land,
+      inSideboard: !!sb,
+      mainQuantity: main?.quantity || 0,
+      landsQuantity: land?.quantity || 0,
+      sideboardQuantity: sb?.quantity || 0
     };
   };
 
@@ -220,7 +248,8 @@ function App() {
         {/* Linke Spalte: Suche */}
         <div className="search-panel">
           <CardSearch
-            onAddToDeck={addToDeck}
+            onAddToMain={addCard}
+            onAddToLands={addCard}
             onAddToSideboard={addToSideboard}
             onOpenModal={openModal}
           />
@@ -228,43 +257,73 @@ function App() {
 
         {/* Rechte Spalte: Deck und Sideboard */}
         <div className="deck-panel">
+          {/* Hauptdeck (Nicht-Länder) */}
           <div className="deck-section">
             <div className="deck-header">
-              <h2>Hauptdeck ({deck.reduce((sum, c) => sum + c.quantity, 0)} Karten)</h2>
-              <button className="danger" onClick={clearDeck}>Deck leeren</button>
+              <h2>Hauptdeck ({totalMain} Karten)</h2>
+              <button className="danger" onClick={clearMain}>Leeren</button>
             </div>
             <CardList
-              items={deck}
-              onRemove={removeFromDeck}
-              onUpdateQuantity={updateDeckQuantity}
+              items={mainDeck}
+              onRemove={removeFromMain}
+              onUpdateQuantity={updateMainQuantity}
               onOpenModal={openModal}
-              onMoveToSideboard={moveToSideboard}
-              onMoveToDeck={moveToDeck}
+              onMoveToSideboard={(id) => moveToSideboard(id, 'main')}
               showMoveButton={true}
               moveDirection="toSideboard"
+              isLandList={false}
+              showCategories={true}
             />
           </div>
 
+          {/* Länder */}
+          <div className="lands-section">
+            <div className="deck-header">
+              <h2>Länder ({totalLands} Karten)</h2>
+              <button className="danger" onClick={clearLands}>Leeren</button>
+            </div>
+            <CardList
+              items={lands}
+              onRemove={removeFromLands}
+              onUpdateQuantity={updateLandsQuantity}
+              onOpenModal={openModal}
+              onMoveToSideboard={(id) => moveToSideboard(id, 'lands')}
+              showMoveButton={true}
+              moveDirection="toSideboard"
+              isLandList={true}
+              showCategories={false}
+            />
+          </div>
+
+          {/* Sideboard */}
           <div className="sideboard-section">
             <div className="deck-header">
-              <h2>Sideboard ({sideboardTotal}/15 Karten)</h2>
-              <button className="danger" onClick={clearSideboard}>Sideboard leeren</button>
+              <h2 className={totalSideboard > 15 ? 'warning-text' : ''}>
+                Sideboard ({totalSideboard}/15 Karten)
+              </h2>
+              <button className="danger" onClick={clearSideboard}>Leeren</button>
             </div>
             <CardList
               items={sideboard}
               onRemove={removeFromSideboard}
               onUpdateQuantity={updateSideboardQuantity}
               onOpenModal={openModal}
-              onMoveToSideboard={moveToSideboard}
-              onMoveToDeck={moveToDeck}
+              onMoveToMain={(id) => moveToMain(id)}
               showMoveButton={true}
-              moveDirection="toDeck"
+              moveDirection="toMain"
+              isLandList={false}
+              showCategories={true}
             />
           </div>
 
+          {/* Gesamt-Deckgröße mit Warnung bei <60 */}
+          <div className={`deck-total ${totalDeck < 60 ? 'warning-text' : ''}`}>
+            <strong>Deck insgesamt: {totalDeck} Karten</strong>
+          </div>
+
           <div className="export-import">
-            <ExportButton deck={deck} sideboard={sideboard} />
-            <ImportButton setDeck={setDeck} setSideboard={setSideboard} />
+            <ExportButton mainDeck={mainDeck} lands={lands} sideboard={sideboard} />
+            <ImportButton setMainDeck={setMainDeck} setLands={setLands} setSideboard={setSideboard} />
           </div>
         </div>
       </div>
@@ -273,13 +332,16 @@ function App() {
         <CardModal
           card={selectedCard}
           onClose={closeModal}
-          onAddToDeck={addToDeck}
+          onAddToMain={addCard}
+          onAddToLands={addCard}
           onAddToSideboard={addToSideboard}
-          onUpdateDeckQuantity={updateDeckQuantity}
+          onUpdateMainQuantity={updateMainQuantity}
+          onUpdateLandsQuantity={updateLandsQuantity}
           onUpdateSideboardQuantity={updateSideboardQuantity}
-          onRemoveFromDeck={removeFromDeck}
+          onRemoveFromMain={removeFromMain}
+          onRemoveFromLands={removeFromLands}
           onRemoveFromSideboard={removeFromSideboard}
-          {...getCardInDeck(selectedCard.id)}
+          {...getCardInDecks(selectedCard.id)}
         />
       )}
     </div>

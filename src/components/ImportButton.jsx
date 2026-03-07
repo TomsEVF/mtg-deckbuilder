@@ -1,9 +1,10 @@
 import { useState } from 'react';
 
-const ImportButton = ({ setDeck, setSideboard }) => {
+const ImportButton = ({ setMainDeck, setLands, setSideboard }) => {
   const [importing, setImporting] = useState(false);
 
   const parseLine = (line) => {
+    // Format: "4 Opt (DAR) 60" oder "4 Opt" oder "4 Opt (DAR)"
     const regex = /^(\d+)\s+(.+?)(?:\s+\((\w+)\)(?:\s+(\d+))?)?$/;
     const match = line.trim().match(regex);
     if (!match) return null;
@@ -21,22 +22,34 @@ const ImportButton = ({ setDeck, setSideboard }) => {
 
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const lines = e.target.result.split('\n').filter(line => line.trim() !== '');
+      const content = e.target.result;
+      const lines = content.split('\n').filter(line => line.trim() !== ''); // Leerzeilen entfernen
+      
       setImporting(true);
+      
+      // Neue Arrays für importierte Karten
+      const newMain = [];
+      const newLands = [];
+      const newSide = [];
 
-      const newDeck = [];
-      const newSideboard = [];
-      let inSideboard = false;
+      let currentSection = 'main'; // main, lands, sideboard
 
       for (const line of lines) {
-        // Sideboard-Marker erkennen
-        if (line.toLowerCase().includes('sideboard') || line.trim() === 'SB:') {
-          inSideboard = true;
+        // Prüfen auf Abschnittswechsel
+        const lower = line.toLowerCase();
+        if (lower.includes('länder') || lower.includes('lander')) {
+          currentSection = 'lands';
+          continue;
+        } else if (lower.includes('sideboard')) {
+          currentSection = 'sideboard';
           continue;
         }
 
         const parsed = parseLine(line);
-        if (!parsed) continue;
+        if (!parsed) {
+          alert(`Zeile konnte nicht geparst werden: ${line}`);
+          continue;
+        }
 
         let query = `!"${parsed.name}"`;
         if (parsed.setCode) query += ` set:${parsed.setCode}`;
@@ -48,7 +61,11 @@ const ImportButton = ({ setDeck, setSideboard }) => {
           const data = await response.json();
           if (data.data && data.data.length > 0) {
             const card = data.data[0];
-            const targetArray = inSideboard ? newSideboard : newDeck;
+            
+            // Je nach aktueller Section in das richtige Array einfügen
+            const targetArray = currentSection === 'main' ? newMain :
+                                 currentSection === 'lands' ? newLands : newSide;
+            
             const existing = targetArray.find(c => c.card.id === card.id);
             if (existing) {
               existing.quantity += parsed.quantity;
@@ -64,8 +81,9 @@ const ImportButton = ({ setDeck, setSideboard }) => {
         await new Promise(resolve => setTimeout(resolve, 100)); // Rate-Limit-Schonung
       }
 
-      setDeck(newDeck);
-      setSideboard(newSideboard);
+      setMainDeck(newMain);
+      setLands(newLands);
+      setSideboard(newSide);
       setImporting(false);
       alert('Import abgeschlossen!');
     };

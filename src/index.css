@@ -724,3 +724,36 @@ button.danger:hover {
   color: #2c3e50;
   font-size: 18px;
 }
+.deck-item.warning {
+  background: rgba(231, 76, 60, 0.2);
+  border-left-color: #e74c3c;
+}
+
+.warning-text {
+  color: #e74c3c;
+  font-weight: bold;
+}
+/* Kategorien in Deck-Listen */
+.category-group {
+  margin-bottom: 20px;
+}
+
+.category-header {
+  margin: 10px 0 5px 0;
+  color: #2c3e50;
+  font-size: 16px;
+  font-weight: bold;
+  border-bottom: 1px solid #3498db;
+  padding-bottom: 3px;
+}
+
+.category-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Warnung für Sideboard-Header spezifischer */
+.deck-header h2.warning-text {
+  color: #e74c3c;
+}

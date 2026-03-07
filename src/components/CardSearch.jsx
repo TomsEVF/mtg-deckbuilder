@@ -39,7 +39,7 @@ const rarityOptions = [
   { value: 'mythic', label: 'Mythic' },
 ];
 
-const CardSearch = ({ onAddToDeck, onOpenModal }) => {
+const CardSearch = ({ onAddToMain, onAddToLands, onAddToSideboard, onOpenModal }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -64,11 +64,13 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
     const parts = [];
     if (query) parts.push(query);
     if (selectedColors.length > 0) {
+      // Wenn Typ = Land, verwende color_identity (ci), sonst color (c)
+      const prefix = cardType === 'land' ? 'ci' : 'c';
       if (selectedColors.includes('c')) {
-        parts.push('c:c');
+        parts.push(`${prefix}:c`);
       } else {
         const colorString = selectedColors.sort().join('');
-        parts.push(`c=${colorString}`);
+        parts.push(`${prefix}=${colorString}`);
       }
     }
     if (cardType) parts.push(`type:${cardType}`);
@@ -91,7 +93,6 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
         .then(res => res.json())
         .then(data => {
           if (data.data) {
-            // Nach Namen sortieren, damit gleiche Länder zusammenstehen
             const sorted = [...data.data].sort((a, b) => a.name.localeCompare(b.name));
             setResults(sorted);
           }
@@ -102,7 +103,6 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
       return;
     }
 
-    // Normale Suche
     if (!searchQuery) {
       setResults([]);
       return;
@@ -116,7 +116,6 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
         .then(res => res.json())
         .then(data => {
           if (data.data) {
-            // Sortierung: Bei Ländern nach Namen, sonst nach CMC
             let sorted;
             if (cardType === 'land') {
               sorted = [...data.data].sort((a, b) => a.name.localeCompare(b.name));
@@ -134,6 +133,16 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
 
     return () => clearTimeout(delay);
   }, [query, selectedColors, cardType, cmcOperator, cmcValue, creatureType, keyword, rarity, hasLoadedInitial]);
+
+  // Funktion zum Hinzufügen: unterscheidet, ob Land oder nicht
+  const handleAddCard = (card) => {
+    const isLand = card.type_line && card.type_line.includes('Land');
+    if (isLand) {
+      onAddToLands(card);
+    } else {
+      onAddToMain(card);
+    }
+  };
 
   return (
     <div>
@@ -163,6 +172,9 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
             />
           </button>
         ))}
+        {cardType === 'land' && (
+          <span className="color-hint">(Filter nach Farbidentität)</span>
+        )}
       </div>
 
       {/* Seltenheitsfilter */}
@@ -234,7 +246,7 @@ const CardSearch = ({ onAddToDeck, onOpenModal }) => {
           <div key={card.id} className="card-item">
             <div
               className="card-main"
-              onClick={() => onAddToDeck(card)}
+              onClick={() => handleAddCard(card)}
               style={{ cursor: 'pointer' }}
             >
               {getCardImage(card) ? (

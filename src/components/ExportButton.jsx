@@ -1,22 +1,27 @@
 import { useState } from 'react';
 
-const ExportButton = ({ deck, sideboard }) => {
+const ExportButton = ({ mainDeck, lands, sideboard }) => {
   const [copySuccess, setCopySuccess] = useState(false);
 
   const generateDeckText = () => {
-    const mainLines = deck.map(({ card, quantity }) =>
+    const mainLines = mainDeck.map(({ card, quantity }) =>
       `${quantity} ${card.name} (${card.set}) ${card.collector_number}`
     );
-
+    const landsLines = lands.map(({ card, quantity }) =>
+      `${quantity} ${card.name} (${card.set}) ${card.collector_number}`
+    );
     const sideLines = sideboard.map(({ card, quantity }) =>
       `${quantity} ${card.name} (${card.set}) ${card.collector_number}`
     );
 
-    if (sideLines.length === 0) {
-      return mainLines.join('\n');
-    } else {
-      return mainLines.join('\n') + '\n\n' + 'Sideboard\n' + sideLines.join('\n');
+    let result = mainLines.join('\n');
+    if (landsLines.length > 0) {
+      result += '\n\nLänder\n' + landsLines.join('\n');
     }
+    if (sideLines.length > 0) {
+      result += '\n\nSideboard\n' + sideLines.join('\n');
+    }
+    return result;
   };
 
   const exportAsFile = () => {
