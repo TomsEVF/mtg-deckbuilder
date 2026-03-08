@@ -757,3 +757,236 @@ button.danger:hover {
 .deck-header h2.warning-text {
   color: #e74c3c;
 }
+.playtester-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.playtester-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  color: #2c3e50;
+}
+
+.playtester-board {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.opponent-area {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  padding: 20px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 12px;
+}
+
+.player-stats {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.mana-pool {
+  margin-bottom: 10px;
+}
+
+.hand-cards, .land-cards, .permanent-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.hand-card, .battlefield-card {
+  width: 100px;
+  background: rgba(255,255,255,0.7);
+  border-radius: 8px;
+  padding: 5px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 2px solid transparent;
+}
+
+.hand-card:hover, .battlefield-card:hover {
+  transform: scale(1.05);
+  border-color: #3498db;
+}
+
+.hand-card img, .battlefield-card img {
+  width: 100%;
+  border-radius: 6px;
+}
+
+.tapped {
+  filter: brightness(0.7);
+  transform: rotate(90deg);
+}
+
+.attacking {
+  border-color: #e74c3c;
+  box-shadow: 0 0 10px #e74c3c;
+}
+
+.power-toughness {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.combat-controls, .phase-controls, .manual-mana {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+/* Größere Buttons im Playtester */
+.big-button {
+  font-size: 16px;
+  padding: 10px 20px;
+  margin: 5px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.big-button:hover {
+  background: #2980b9;
+  transform: scale(1.02);
+}
+
+.mana-button {
+  font-size: 14px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid #3498db;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 2px;
+}
+
+.mana-button:hover {
+  background: #3498db;
+  color: white;
+}
+
+/* Manapool-Darstellung */
+.mana-pool {
+  margin: 10px 0;
+  padding: 10px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 8px;
+}
+
+.mana-symbols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 5px;
+}
+
+.mana-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: bold;
+}
+
+.mana-item img {
+  width: 20px;
+  height: 20px;
+}
+/* Größere Buttons */
+.big-button {
+  font-size: 16px;
+  padding: 10px 20px;
+  margin: 5px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.big-button:hover {
+  background: #2980b9;
+  transform: scale(1.02);
+}
+
+/* Mana-Reduzier-Button */
+.mana-reduce {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.mana-reduce:hover {
+  background: #c0392b;
+}
+
+/* Kampf-Vorschau */
+.combat-preview {
+  margin: 10px 0;
+  padding: 10px;
+  background: rgba(52, 152, 219, 0.1);
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
+}
+
+/* Angreifer hervorheben */
+.attacking {
+  border: 2px solid #e74c3c;
+  box-shadow: 0 0 10px #e74c3c;
+}
+/* Kleine Buttons für Lebenspunkte */
+.small-button {
+  font-size: 12px;
+  padding: 4px 8px;
+  margin: 0 2px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.small-button:hover {
+  background: #2980b9;
+}
+
+.opponent-life-controls {
+  display: inline-block;
+  margin-left: 10px;
+}

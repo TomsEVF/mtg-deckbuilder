@@ -4,6 +4,7 @@ import CardList from './components/CardList';
 import ExportButton from './components/ExportButton';
 import ImportButton from './components/ImportButton';
 import CardModal from './components/CardModal';
+import Playtester from './components/Playtester';
 import './index.css';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
 
   const [selectedCard, setSelectedCard] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [playtesterOpen, setPlaytesterOpen] = useState(false);
 
   // Alles im localStorage speichern
   useEffect(() => {
@@ -50,6 +52,9 @@ function App() {
     setModalOpen(false);
     setSelectedCard(null);
   };
+
+  const openPlaytester = () => setPlaytesterOpen(true);
+  const closePlaytester = () => setPlaytesterOpen(false);
 
   // Hilfsfunktion: Ist die Karte ein Land?
   const isLand = (card) => {
@@ -324,6 +329,7 @@ function App() {
           <div className="export-import">
             <ExportButton mainDeck={mainDeck} lands={lands} sideboard={sideboard} />
             <ImportButton setMainDeck={setMainDeck} setLands={setLands} setSideboard={setSideboard} />
+            <button className="test-button" onClick={openPlaytester}>Deck testen</button>
           </div>
         </div>
       </div>
@@ -342,6 +348,14 @@ function App() {
           onRemoveFromLands={removeFromLands}
           onRemoveFromSideboard={removeFromSideboard}
           {...getCardInDecks(selectedCard.id)}
+        />
+      )}
+
+      {playtesterOpen && (
+        <Playtester
+          mainDeck={mainDeck}
+          lands={lands}
+          onClose={closePlaytester}
         />
       )}
     </div>
